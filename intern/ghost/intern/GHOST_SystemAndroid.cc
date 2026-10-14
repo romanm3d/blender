@@ -688,6 +688,20 @@ static GHOST_TKey convertAndroidKey(int32_t keycode)
       return GHOST_kKeyDelete;
     case AKEYCODE_TAB:
       return GHOST_kKeyTab;
+    case AKEYCODE_SHIFT_LEFT:
+      return GHOST_kKeyLeftShift;
+    case AKEYCODE_SHIFT_RIGHT:
+      return GHOST_kKeyRightShift;
+
+    case AKEYCODE_CTRL_LEFT:
+      return GHOST_kKeyLeftControl;
+    case AKEYCODE_CTRL_RIGHT:
+      return GHOST_kKeyRightControl;
+
+    case AKEYCODE_ALT_LEFT:
+      return GHOST_kKeyLeftAlt;
+    case AKEYCODE_ALT_RIGHT:
+      return GHOST_kKeyRightAlt;   
     case AKEYCODE_ESCAPE:
     case AKEYCODE_BACK:
       return GHOST_kKeyEsc;
