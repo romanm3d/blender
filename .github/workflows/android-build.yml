@@ -1,23 +1,110 @@
-name: Check Android build environment
+name: Build Blender Android Lite
 
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
-  check:
+  build:
     runs-on: ubuntu-24.04
+    timeout-minutes: 360
+
     steps:
-      - name: Checkout repository
+      - name: Free runner disk space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+
+      - name: Checkout source
         uses: actions/checkout@v4
         with:
           ref: android
+          lfs: false
           submodules: false
 
-      - name: Check source and build files
+      - name: Install build tools
         run: |
-          echo "Checking Android build files"
-          test -f intern/ghost/intern/GHOST_SystemAndroid.cc
-          test -f build_files/android/build.py
-          grep -n "AKEYCODE_SHIFT_LEFT" intern/ghost/intern/GHOST_SystemAndroid.cc
-          echo "Source and build script found"
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential gcc-14 g++-14 cmake ninja-build \
+            patchelf zip unzip git-lfs openjdk-17-jdk \
+            python3 curl xz-utils bison flex pkg-config
+
+      - name: Fetch Blender LFS and dependencies
+        run: |
+          git lfs install --local
+          git config lfs.url \
+            https://projects.blender.org/blender/blender.git/info/lfs
+          git config --local \
+            'credential.https://projects.blender.org.helper' \
+            '!f() { echo username=; echo password=; }; f'
+          git lfs pull
+
+          git -c submodule.lib/linux_x64.update=checkout \
+            submodule update --init lib/linux_x64
+          git submodule update --init lib/android_arm64
+
+          git -C lib/linux_x64 lfs install --local
+          git -C lib/linux_x64 lfs pull
+
           df -h /
+
+      - name: Install Android SDK and NDK
+        uses: android-actions/setup-android@v3
+
+      - name: Prepare Android packages
+        run: |
+          mkdir -p "$HOME/android-sdk"
+          if [ ! -e "$HOME/android-sdk/cmdline-tools" ]; then
+            ln -s "$ANDROID_HOME/cmdline-tools" \
+              "$HOME/android-sdk/cmdline-tools"
+          fi
+          if [ ! -e "$HOME/android-sdk/platform-tools" ]; then
+            ln -s "$ANDROID_HOME/platform-tools" \
+              "$HOME/android-sdk/platform-tools"
+          fi
+          if [ ! -e "$HOME/android-sdk/build-tools" ]; then
+            ln -s "$ANDROID_HOME/build-tools" \
+              "$HOME/android-sdk/build-tools"
+          fi
+          if [ ! -e "$HOME/android-sdk/platforms" ]; then
+            ln -s "$ANDROID_HOME/platforms" \
+              "$HOME/android-sdk/platforms"
+          fi
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
+            --licenses || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
+            "ndk;30.0.14904198-beta1" \
+            "platform-tools" \
+            "build-tools;35.0.1" \
+            "platforms;android-35"
+
+      - name: Prepare Vulkan headers
+        run: |
+          mkdir -p ../blender_build_android/lib/vulkan_headers
+          curl -fL \
+            https://github.com/KhronosGroup/Vulkan-Headers/archive/refs/tags/v1.4.341.tar.gz \
+            -o /tmp/vulkan-headers.tar.gz
+          tar -xzf /tmp/vulkan-headers.tar.gz -C /tmp
+          cp -R /tmp/Vulkan-Headers-1.4.341/include \
+            ../blender_build_android/lib/vulkan_headers/include
+
+      - name: Build APK
+        run: |
+          python3 build_files/android/build.py lite
+
+      - name: Upload APK
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: blender-android-lite
+          path: ../blender_build_android/android_apk_stage_lite/blender-lite.apk
+          if-no-files-found: error
+          retention-days: 7
