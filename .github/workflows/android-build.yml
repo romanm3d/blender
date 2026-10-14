@@ -1,0 +1,23 @@
+name: Check Android build environment
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: android
+          submodules: false
+
+      - name: Check source and build files
+        run: |
+          echo "Checking Android build files"
+          test -f intern/ghost/intern/GHOST_SystemAndroid.cc
+          test -f build_files/android/build.py
+          grep -n "AKEYCODE_SHIFT_LEFT" intern/ghost/intern/GHOST_SystemAndroid.cc
+          echo "Source and build script found"
+          df -h /
