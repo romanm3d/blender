@@ -86,7 +86,7 @@ jobs:
           fi
           yes | sdkmanager --licenses || true
           sdkmanager --channel=3 \
-            "ndk;30.0.14904198-beta1" \
+            "ndk;30.0.14904198" \
             "platform-tools" \
             "build-tools;35.0.1" \
             "platforms;android-35"
