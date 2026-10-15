@@ -84,9 +84,9 @@ jobs:
             ln -s "$ANDROID_HOME/platforms" \
               "$HOME/android-sdk/platforms"
           fi
-          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
+          yes | "$ANDROID_HOME/cmdline-tools/16.0/bin/sdkmanager" \
             --licenses || true
-          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
+          "$ANDROID_HOME/cmdline-tools/16.0/bin/sdkmanager" \
             "ndk;30.0.14904198-beta1" \
             "platform-tools" \
             "build-tools;35.0.1" \
