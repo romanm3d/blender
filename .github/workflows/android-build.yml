@@ -86,7 +86,6 @@ jobs:
           fi
           yes | sdkmanager --licenses || true
           sdkmanager \
-          "$ANDROID_HOME/cmdline-tools/16.0/bin/sdkmanager" \
             "ndk;30.0.14904198-beta1" \
             "platform-tools" \
             "build-tools;35.0.1" \
