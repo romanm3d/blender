@@ -60,11 +60,19 @@ if [ ! -x "$HOST/bin/makesdna" ]; then
   # different set of files than the target build expects. So TBB stays on
   # and gets an rpath: Linux does not bake the library path into the
   # executable the way macOS does, and the generator would not start.
-  cmake -S . -B "$HOST" -G Ninja -C "$FEATURES" -DWITH_CROSSCOMPILED_TOOLS=OFF \
-    -DCMAKE_C_COMPILER="$ANDROID_HOST_CC" -DCMAKE_CXX_COMPILER="$ANDROID_HOST_CXX" \
-    -DWITH_HEADLESS=ON -DWITH_GHOST_X11=OFF -DWITH_X11_XINPUT=OFF \
+  cmake -S . -B "$HOST" -G Ninja -C "$FEATURES" \
+    -DWITH_CROSSCOMPILED_TOOLS=OFF \
+    -DCMAKE_C_COMPILER="$ANDROID_HOST_CC" \
+    -DCMAKE_CXX_COMPILER="$ANDROID_HOST_CXX" \
+    -DWITH_HEADLESS=ON \
+    -DWITH_GHOST_X11=OFF \
+    -DWITH_X11_XINPUT=OFF \
     -DWITH_AUDASPACE=OFF \
     -DCMAKE_BUILD_RPATH="$REPO_ROOT/lib/linux_x64/tbb/lib"
+  echo "=== Host X11 cashe values ==="
+  grep -E '^(WITH_GHOST_X11|WITH_X11_XINPUT):' \
+    "$HOST/CMakeCache.txt" || true
+
   ninja -C "$HOST" makesdna makesrna datatoc msgfmt shader_tool
 fi
 
