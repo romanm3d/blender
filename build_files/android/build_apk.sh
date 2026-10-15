@@ -69,7 +69,7 @@ if [ ! -x "$HOST/bin/makesdna" ]; then
     -DWITH_X11_XINPUT=OFF \
     -DWITH_AUDASPACE=OFF \
     -DCMAKE_BUILD_RPATH="$REPO_ROOT/lib/linux_x64/tbb/lib"
-  echo "=== Host X11 cashe values ==="
+  echo "=== Host X11 cache values ==="
   grep -E '^(WITH_GHOST_X11|WITH_X11_XINPUT):' \
     "$HOST/CMakeCache.txt" || true
 
