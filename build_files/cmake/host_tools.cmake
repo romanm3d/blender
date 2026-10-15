@@ -31,10 +31,23 @@ if(CMAKE_CROSSCOMPILING)
   set(_host_tools_forwarded_args "")
   foreach(_v IN LISTS _host_tools_all_cache_vars)
     if(_v MATCHES "^WITH_")
+      if(ANDROID AND _v MATCHES
+          "^(WITH_GHOST_X11|WITH_X11_XINPUT|WITH_GHOST_WAYLAND|WITH_GHOST_DBUS)$")
+        continue()
+      endif()
       list(APPEND _host_tools_forwarded_args "-D${_v}=${${_v}}")
     endif()
   endforeach()
   unset(_host_tools_all_cache_vars)
+
+  if(ANDROID)
+    list(APPEND _host_tools_forwarded_args
+      -DWITH_GHOST_X11=OFF
+      -DWITH_X11_XINPUT=OFF
+      -DWITH_GHOST_WAYLAND=OFF
+      -DWITH_GHOST_DBUS=OFF
+    )
+  endif()
 
   if(HOST_C_COMPILER)
     list(APPEND _host_tools_forwarded_args "-DCMAKE_C_COMPILER=${HOST_C_COMPILER}")
