@@ -114,11 +114,17 @@ jobs:
         run: |
           python3 build_files/android/build.py lite
 
+      - name: Prepare APK artifact
+        if: success()
+        run: |
+          mkdir -p artifacts
+          cp ../blender_build_android/android_apk_stage_lite/blender-lite.apk artifacts/blender-lite.apk
+
       - name: Upload APK
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: blender-android-lite
-          path: ../blender_build_android/android_apk_stage_lite/blender-lite.apk
+          path: artifacts/blender-lite.apk
           if-no-files-found: error
           retention-days: 7
