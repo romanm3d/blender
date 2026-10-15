@@ -61,7 +61,7 @@ jobs:
           df -h /
 
       - name: Install Android SDK and NDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
         with:
           packages: 'platform-tools'
 
