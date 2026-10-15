@@ -90,6 +90,9 @@ jobs:
             "platform-tools" \
             "build-tools;35.0.1" \
             "platforms;android-35"
+          if [ ! -e "$HOME/android-sdk/ndk" ]; then
+            ln -s "$ANDROID_HOME/ndk" "$HOME/android-sdk/ndk"
+          fi
 
       - name: Prepare Vulkan headers
         run: |
