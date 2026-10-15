@@ -93,6 +93,12 @@ jobs:
           if [ ! -e "$HOME/android-sdk/ndk" ]; then
             ln -s "$ANDROID_HOME/ndk" "$HOME/android-sdk/ndk"
           fi
+          
+          if [ -d "$ANDROID_HOME/ndk/30.0.14904198" ] && \
+             [ ! -e "$ANDROID_HOME/ndk/30.0.14904198-beta1" ]; then
+            ln -s "$ANDROID_HOME/ndk/30.0.14904198" \
+              "$ANDROID_HOME/ndk/30.0.14904198-beta1"
+          fi
 
       - name: Prepare Vulkan headers
         run: |
