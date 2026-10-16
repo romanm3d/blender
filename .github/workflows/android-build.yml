@@ -68,37 +68,48 @@ jobs:
       - name: Prepare Android packages
         run: |
           mkdir -p "$HOME/android-sdk"
+
           if [ ! -e "$HOME/android-sdk/cmdline-tools" ]; then
             ln -s "$ANDROID_HOME/cmdline-tools" \
               "$HOME/android-sdk/cmdline-tools"
           fi
+
           if [ ! -e "$HOME/android-sdk/platform-tools" ]; then
             ln -s "$ANDROID_HOME/platform-tools" \
               "$HOME/android-sdk/platform-tools"
           fi
+
           if [ ! -e "$HOME/android-sdk/build-tools" ]; then
             ln -s "$ANDROID_HOME/build-tools" \
               "$HOME/android-sdk/build-tools"
           fi
+
           if [ ! -e "$HOME/android-sdk/platforms" ]; then
             ln -s "$ANDROID_HOME/platforms" \
               "$HOME/android-sdk/platforms"
           fi
+
           yes | sdkmanager --licenses || true
+
           sdkmanager --channel=3 \
             "ndk;30.0.14904198" \
             "platform-tools" \
             "build-tools;35.0.1" \
             "platforms;android-35"
-          if [ ! -e "$HOME/android-sdk/ndk" ]; then
-            ln -s "$ANDROID_HOME/ndk" "$HOME/android-sdk/ndk"
-          fi
-          
-          if [ -d "$ANDROID_HOME/ndk/30.0.14904198" ] && \
-             [ ! -e "$ANDROID_HOME/ndk/30.0.14904198-beta1" ]; then
+
+          rm -rf "$HOME/android-sdk/ndk"
+          ln -s "$ANDROID_HOME/ndk" "$HOME/android-sdk/ndk"
+
+          if [ -d "$ANDROID_HOME/ndk/30.0.14904198" ]; then
+            rm -f "$HOME/android-sdk/ndk/30.0.14904198-beta1"
             ln -s "$ANDROID_HOME/ndk/30.0.14904198" \
-              "$ANDROID_HOME/ndk/30.0.14904198-beta1"
+              "$HOME/android-sdk/ndk/30.0.14904198-beta1"
           fi
+
+          echo "=== Android NDK check ==="
+          ls -la "$HOME/android-sdk/ndk"
+          ls -la "$HOME/android-sdk/ndk/30.0.14904198-beta1"
+          test -f "$HOME/android-sdk/ndk/30.0.14904198-beta1/build/cmake/android.toolchain.cmake"
 
       - name: Prepare Vulkan headers
         run: |
