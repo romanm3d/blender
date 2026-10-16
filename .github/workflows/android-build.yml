@@ -66,50 +66,56 @@ jobs:
           packages: 'platform-tools'
 
       - name: Prepare Android packages
+        shell: bash
         run: |
-          mkdir -p "$HOME/android-sdk"
+          set -euo pipefail
 
-          if [ ! -e "$HOME/android-sdk/cmdline-tools" ]; then
-            ln -s "$ANDROID_HOME/cmdline-tools" \
-              "$HOME/android-sdk/cmdline-tools"
-          fi
+          SDK="$ANDROID_HOME"
+          BLENDER_SDK="$HOME/android-sdk"
+          NDK_VERSION="30.0.14904198"
+          NDK_ALIAS="30.0.14904198-beta1"
 
-          if [ ! -e "$HOME/android-sdk/platform-tools" ]; then
-            ln -s "$ANDROID_HOME/platform-tools" \
-              "$HOME/android-sdk/platform-tools"
-          fi
+          mkdir -p "$BLENDER_SDK"
 
-          if [ ! -e "$HOME/android-sdk/build-tools" ]; then
-            ln -s "$ANDROID_HOME/build-tools" \
-              "$HOME/android-sdk/build-tools"
-          fi
+          for item in cmdline-tools platform-tools build-tools platforms; do
+            if [ ! -e "$BLENDER_SDK/$item" ]; then
+              ln -s "$SDK/$item" "$BLENDER_SDK/$item"
+            fi
+          done
 
-          if [ ! -e "$HOME/android-sdk/platforms" ]; then
-            ln -s "$ANDROID_HOME/platforms" \
-              "$HOME/android-sdk/platforms"
-          fi
+          yes | sdkmanager --sdk_root="$SDK" --licenses || true
 
-          yes | sdkmanager --licenses || true
-
-          sdkmanager --channel=3 \
-            "ndk;30.0.14904198" \
+          sdkmanager --sdk_root="$SDK" --channel=3 \
+            "ndk;$NDK_VERSION" \
             "platform-tools" \
             "build-tools;35.0.1" \
             "platforms;android-35"
 
-          rm -rf "$HOME/android-sdk/ndk"
-          ln -s "$ANDROID_HOME/ndk" "$HOME/android-sdk/ndk"
+          test -f "$SDK/ndk/$NDK_VERSION/build/cmake/android.toolchain.cmake"
 
-          if [ -d "$ANDROID_HOME/ndk/30.0.14904198" ]; then
-            rm -f "$HOME/android-sdk/ndk/30.0.14904198-beta1"
-            ln -s "$ANDROID_HOME/ndk/30.0.14904198" \
-              "$HOME/android-sdk/ndk/30.0.14904198-beta1"
+          if [ -L "$BLENDER_SDK/ndk" ]; then
+            rm "$BLENDER_SDK/ndk"
+          elif [ -e "$BLENDER_SDK/ndk" ]; then
+            echo "Unexpected existing NDK directory: $BLENDER_SDK/ndk"
+            exit 1
           fi
 
-          echo "=== Android NDK check ==="
-          ls -la "$HOME/android-sdk/ndk"
-          ls -la "$HOME/android-sdk/ndk/30.0.14904198-beta1"
-          test -f "$HOME/android-sdk/ndk/30.0.14904198-beta1/build/cmake/android.toolchain.cmake"
+          ln -s "$SDK/ndk" "$BLENDER_SDK/ndk"
+
+          if [ ! -e "$SDK/ndk/$NDK_ALIAS" ]; then
+          ln -s "$NDK_VERSION" "$SDK/ndk/$NDK_ALIAS"
+          fi
+
+          echo "=== SDK paths ==="
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          echo "BLENDER_SDK=$BLENDER_SDK"
+          echo "=== NDK directories ==="
+          ls -la "$SDK/ndk"
+
+          test -f "$SDK/ndk/$NDK_ALIAS/build/cmake/android.toolchain.cmake"
+          test -f "$BLENDER_SDK/ndk/$NDK_ALIAS/build/cmake/android.toolchain.cmake"
+
+          echo "NDK toolchain checks passed."
 
       - name: Prepare Vulkan headers
         run: |
