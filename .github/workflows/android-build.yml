@@ -1,5 +1,5 @@
 
-name: Build Blender Android Lite
+name: Build Blender Android Full
 
 on:
   workflow_dispatch:
@@ -112,19 +112,18 @@ jobs:
 
       - name: Build APK
         run: |
-          python3 build_files/android/build.py lite
-
+          python3 build_files/android/build.py full
       - name: Prepare APK artifact
         if: success()
         run: |
           mkdir -p artifacts
-          cp ../blender_build_android/android_apk_stage_lite/blender-lite.apk artifacts/blender-lite.apk
+          cp ../blender_build_android/android_apk_stage_full/blender-full.apk artifacts/blender-full.apk
 
       - name: Upload APK
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: blender-android-lite
-          path: artifacts/blender-lite.apk
+          name: blender-android-full
+          path: artifacts/blender-full.apk
           if-no-files-found: error
           retention-days: 7
