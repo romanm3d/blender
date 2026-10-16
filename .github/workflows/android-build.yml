@@ -70,18 +70,11 @@ jobs:
         run: |
           set -euo pipefail
 
-          SDK="$ANDROID_HOME"
-          BLENDER_SDK="$HOME/android-sdk"
+          SDK="$HOME/android-sdk"
           NDK_VERSION="30.0.14904198"
           NDK_ALIAS="30.0.14904198-beta1"
 
-          mkdir -p "$BLENDER_SDK"
-
-          for item in cmdline-tools platform-tools build-tools platforms; do
-            if [ ! -e "$BLENDER_SDK/$item" ]; then
-              ln -s "$SDK/$item" "$BLENDER_SDK/$item"
-            fi
-          done
+          mkdir -p "$SDK"
 
           yes | sdkmanager --sdk_root="$SDK" --licenses || true
 
@@ -91,31 +84,23 @@ jobs:
             "build-tools;35.0.1" \
             "platforms;android-35"
 
-          test -f "$SDK/ndk/$NDK_VERSION/build/cmake/android.toolchain.cmake"
-
-          if [ -L "$BLENDER_SDK/ndk" ]; then
-            rm "$BLENDER_SDK/ndk"
-          elif [ -e "$BLENDER_SDK/ndk" ]; then
-            echo "Unexpected existing NDK directory: $BLENDER_SDK/ndk"
-            exit 1
-          fi
-
-          ln -s "$SDK/ndk" "$BLENDER_SDK/ndk"
-
           if [ ! -e "$SDK/ndk/$NDK_ALIAS" ]; then
-          ln -s "$NDK_VERSION" "$SDK/ndk/$NDK_ALIAS"
+            ln -s "$NDK_VERSION" "$SDK/ndk/$NDK_ALIAS"
           fi
 
-          echo "=== SDK paths ==="
-          echo "ANDROID_HOME=$ANDROID_HOME"
-          echo "BLENDER_SDK=$BLENDER_SDK"
-          echo "=== NDK directories ==="
-          ls -la "$SDK/ndk"
-
+          echo "=== Verify Android toolchain ==="
+          echo "ANDROID_HOME=$SDK"
+          echo "NDK=$SDK/ndk/$NDK_ALIAS"
           test -f "$SDK/ndk/$NDK_ALIAS/build/cmake/android.toolchain.cmake"
-          test -f "$BLENDER_SDK/ndk/$NDK_ALIAS/build/cmake/android.toolchain.cmake"
+          command -v ninja
+          ninja --version
 
-          echo "NDK toolchain checks passed."
+          echo "=== Verify env.sh uses the expected paths ==="
+          source build_files/android/env.sh
+          echo "ANDROID_NDK_ROOT=${ANDROID_NDK_ROOT:-unset}"
+          echo "ANDROID_TOOLCHAIN_FILE=${ANDROID_TOOLCHAIN_FILE:-unset}"
+          test -f "$HOME/android-sdk/ndk/$NDK_ALIAS/build/cmake/android.toolchain.cmake"
+          echo "Android toolchain checks passed."
 
       - name: Prepare Vulkan headers
         run: |
