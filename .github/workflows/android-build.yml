@@ -87,7 +87,11 @@ jobs:
           if [ ! -e "$SDK/ndk/$NDK_ALIAS" ]; then
             ln -s "$NDK_VERSION" "$SDK/ndk/$NDK_ALIAS"
           fi
-
+          echo "ANDROID_HOME=$SDK" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$SDK" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_ROOT=$SDK/ndk/$NDK_ALIAS" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_HOME=$SDK/ndk/$NDK_ALIAS" >> "$GITHUB_ENV"
+          
           echo "=== Verify Android toolchain ==="
           echo "ANDROID_HOME=$SDK"
           echo "NDK=$SDK/ndk/$NDK_ALIAS"
